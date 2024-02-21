@@ -1,0 +1,13 @@
+{
+    "cSpell.words": [
+        "dataframe",
+        "datafusion",
+        "nushell",
+        "subgenres",
+        "wordfrequency",
+        "xslx"
+    ],
+    "markdownlint.customRules": [
+        "MD034"
+    ]
+}
