@@ -1,15 +1,16 @@
 mod error;
+pub mod query;
 pub use error::{CustomError, Error};
 
 #[derive(Debug, Clone, Copy)]
-pub enum DataSourceType {
+pub enum SheetType {
     First,
     Second,
     Third,
     Fourth,
 }
 
-impl DataSourceType {
+impl SheetType {
     pub fn file_name(&self) -> String {
         match self {
             Self::First => "wordFrequencyFirst.csv",
@@ -29,7 +30,7 @@ impl DataSourceType {
         .to_string()
     }
     pub fn table_name(&self) -> String {
-        match self {
+        match &self {
             Self::First => "lemmas",
             Self::Second => "subgenres",
             Self::Third => "wordForms",
@@ -39,7 +40,7 @@ impl DataSourceType {
     }
 }
 
-impl TryFrom<usize> for DataSourceType {
+impl TryFrom<usize> for SheetType {
     type Error = CustomError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         match value {
@@ -52,4 +53,45 @@ impl TryFrom<usize> for DataSourceType {
             )),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum MatchType {
+    All,
+    Prefix,
+    Suffix,
+}
+
+#[derive(Debug, Clone)]
+pub enum Columns {
+    All,
+    List(indexmap::IndexSet<String>),
+}
+
+impl Columns {
+    pub fn all() -> Self {
+        Columns::All
+    }
+    pub fn list() -> Self {
+        Columns::List(indexmap::IndexSet::new())
+    }
+    pub fn insert(&mut self, column: String) -> bool {
+        match self {
+            Columns::All => false,
+            Columns::List(set) => set.insert(column),
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! columns {
+    ($($column:expr),*) => {
+        {
+            let mut set = $crate::Columns::list();
+            $(
+                let _ = set.insert($column.to_string());
+            )*
+            set
+        }
+    };
 }

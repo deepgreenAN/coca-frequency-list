@@ -1,6 +1,7 @@
 use core::fmt;
 use std::fmt::Display;
 
+/// CLIアプリケーションのエラー．標準エラー出力に表示する．
 #[derive(thiserror::Error)]
 pub enum Error {
     /// コマンドライン引数に関するエラー．
@@ -26,6 +27,7 @@ impl std::fmt::Debug for Error {
     }
 }
 
+/// 外部には直接公開しないカスタムエラー．
 #[derive(Debug)]
 pub struct CustomError {
     msg: String,

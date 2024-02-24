@@ -22,14 +22,20 @@ First, you need to enable "script.nu".
 source script.nu
 ```
 
-And you can select the frequency list and search it. You can get the 100 most frequent verb lemmas like this.
+You can get the 100 most frequent verb lemmas like this.
 
 ```shell
-select_list "v" -e 100
+query --pos "v" --limit 100
 ```
 
 You can search word forms in the "wordForms" sheet like this.
 
 ```shell
-search_list have,has -t 3
+query --words have,has --sheet 3
+```
+
+Or you can use sql directly.
+
+```shell
+sql "SELECT * FROM lemmas LIMIT 10"
 ```

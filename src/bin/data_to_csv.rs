@@ -41,7 +41,7 @@ struct CliArgs {
 }
 
 fn main() -> Result<(), Error> {
-    use coca_frequency_list::{CustomError, DataSourceType};
+    use coca_frequency_list::{CustomError, SheetType};
 
     use std::fs::File;
     use std::io::BufWriter;
@@ -78,37 +78,37 @@ The xlsx source cannot be found. Please download it from the official website: h
     };
 
     {
-        let range = xl.worksheet_range(&DataSourceType::First.sheet_name())?;
+        let range = xl.worksheet_range(&SheetType::First.sheet_name())?;
         let mut writer = BufWriter::new(File::create(PathBuf::from(format!(
             "./data/{}",
-            DataSourceType::First.file_name()
+            SheetType::First.file_name()
         )))?);
 
         write_range(&mut writer, &range)?;
     }
     {
-        let range = xl.worksheet_range(&DataSourceType::Second.sheet_name())?;
+        let range = xl.worksheet_range(&SheetType::Second.sheet_name())?;
         let mut writer = BufWriter::new(File::create(PathBuf::from(format!(
             "./data/{}",
-            DataSourceType::Second.file_name()
+            SheetType::Second.file_name()
         )))?);
 
         write_range(&mut writer, &range)?;
     }
     {
-        let range = xl.worksheet_range(&DataSourceType::Third.sheet_name())?;
+        let range = xl.worksheet_range(&SheetType::Third.sheet_name())?;
         let mut writer = BufWriter::new(File::create(PathBuf::from(format!(
             "./data/{}",
-            DataSourceType::Third.file_name()
+            SheetType::Third.file_name()
         )))?);
 
         write_range(&mut writer, &range)?;
     }
     {
-        let range = xl.worksheet_range(&DataSourceType::Fourth.sheet_name())?;
+        let range = xl.worksheet_range(&SheetType::Fourth.sheet_name())?;
         let mut writer = BufWriter::new(File::create(PathBuf::from(format!(
             "./data/{}",
-            DataSourceType::Fourth.file_name()
+            SheetType::Fourth.file_name()
         )))?);
 
         write_range(&mut writer, &range)?;
