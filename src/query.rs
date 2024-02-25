@@ -13,13 +13,19 @@ pub fn simple_query(
     skip: Option<usize>,
     limit: Option<usize>,
     additional_columns: Option<&[String]>,
+    all: bool,
 ) -> Result<DataFrame, Error> {
+    // filter用のカラム
     let mut columns = match sheet_type {
         SheetType::First => crate::columns!["rank", "lemma", "freq"],
         SheetType::Second => crate::columns!["rank", "lemma"],
         SheetType::Third => Columns::all(),
         SheetType::Fourth => crate::columns!["rank", "word", "freq", "#texts"],
     };
+
+    if all {
+        columns = Columns::all();
+    }
 
     // where句を記述する
     let mut where_expr: Option<Expr> = None;
@@ -122,14 +128,13 @@ pub fn simple_query(
                     CustomError::msg("Invalid column for select in the specified sheet.").into(),
                 ))?;
             }
-
-            columns.insert(column.to_string());
+            columns.insert(column.to_owned());
         }
     }
     if let Columns::List(list) = columns {
         df = df.select(
             list.into_iter()
-                .map(|column| logical_expr::col(column))
+                .map(|column| logical_expr::col(format!(r#""{column}""#)))
                 .collect::<Vec<_>>(),
         )?;
     }

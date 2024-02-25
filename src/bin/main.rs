@@ -39,7 +39,7 @@ enum Commands {
 
         /// sheet numbers of frequency data
         #[arg(long)]
-        sheets: Option<Vec<usize>>,
+        sheets: Option<String>,
 
         #[command(flatten)]
         common: Common,
@@ -72,7 +72,11 @@ enum Commands {
 
         /// additional columns
         #[arg(long)]
-        columns: Option<Vec<String>>,
+        columns: Option<String>,
+
+        /// get all columns
+        #[arg(long)]
+        all: bool,
 
         #[command(flatten)]
         common: Common,
@@ -134,8 +138,37 @@ async fn query_command(
     skip: Option<usize>,
     limit: Option<usize>,
     columns: Option<&[String]>,
+    all: bool,
     dist_path: Option<&Path>,
 ) -> Result<(), Error> {
+    if let Some(pos) = pos {
+        let pos_list = vec![
+            "a".to_string(), // 冠詞
+            "c".to_string(), // 接続詞
+            "d".to_string(), // 限定詞
+            "e".to_string(), // 存在
+            "f".to_string(), // その他
+            "g".to_string(), // ゲルマン所有
+            "i".to_string(), // 前置詞
+            "j".to_string(), // 形容詞
+            "m".to_string(), // 数詞
+            "n".to_string(), // 名詞
+            "p".to_string(), // 代名詞
+            "r".to_string(), // 副詞
+            "t".to_string(), // 不定詞
+            "u".to_string(), // 間投詞
+            "v".to_string(), // 動詞
+            "x".to_string(), // 否定
+            "z".to_string(), // 略称
+        ];
+
+        if !pos_list.contains(&pos.to_owned()) {
+            return Err(Error::ArgError(
+                CustomError::msg(format!("Invalid pos value. Choose pos in {pos_list:?}")).into(),
+            ));
+        }
+    }
+
     let words_and_match = match (words, prefix, suffix) {
         (Some(words), true, false) => Some((words, MatchType::Prefix)),
         (Some(words), false, true) => Some((words, MatchType::Suffix)),
@@ -174,6 +207,7 @@ The data source files cannot be found. Please download xlsx file from the offici
         skip,
         limit,
         columns,
+        all,
     )?;
 
     match dist_path {
@@ -205,7 +239,21 @@ async fn main() -> Result<(), Error> {
                     limit,
                 },
         } => {
-            for sheet_number in sheets.unwrap_or(vec![1]) {
+            let sheets = {
+                sheets
+                    .unwrap_or("1".to_string())
+                    .split(",")
+                    .map(|sheet| sheet.parse())
+                    .collect::<Result<Vec<usize>, _>>()
+                    .map_err(|e| {
+                        Error::ArgError(
+                            CustomError::new("sheets must be integer or list of integer.", e)
+                                .into(),
+                        )
+                    })?
+            };
+
+            for sheet_number in sheets {
                 let sheet_type = TryInto::<SheetType>::try_into(sheet_number)
                     .map_err(|e| Error::ArgError(e.into()))?;
 
@@ -222,6 +270,7 @@ async fn main() -> Result<(), Error> {
             sheet,
             sorted,
             columns,
+            all,
             common:
                 Common {
                     dist_path,
@@ -239,6 +288,13 @@ async fn main() -> Result<(), Error> {
                     .collect::<Vec<_>>()
             });
 
+            let columns = columns.map(|columns| {
+                columns
+                    .split(",")
+                    .map(|column| column.to_owned())
+                    .collect::<Vec<_>>()
+            });
+
             register_data(&ctx, sheet_type).await?;
 
             query_command(
@@ -252,6 +308,7 @@ async fn main() -> Result<(), Error> {
                 skip,
                 limit,
                 columns.as_deref(),
+                all,
                 dist_path.as_deref(),
             )
             .await?;

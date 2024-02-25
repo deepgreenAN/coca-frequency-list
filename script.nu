@@ -8,6 +8,7 @@ def query [
     --skip: int, # skip number of rows
     --limit: int, # limit row number of query result
     --columns: string, # additional columns
+    --all, # get all columns
 ] {
 
     mut args = []
@@ -38,6 +39,9 @@ def query [
     }
     if $columns != null {
         $args = ($args | prepend ["--columns", $columns])
+    }
+    if $all {
+        $args = ($args | prepend "--all")
     }
 
     let temp_file_path = "./temp_query_result.csv";
