@@ -2,7 +2,7 @@ def query [
     --words: string, # search terms
     --prefix, # search terms with specified prefix
     --suffix, # search terms with specified prefix
-    --pos: string,  # filtering by part of speech(pos)
+    --pos: string,  # filtering by parts of speech(pos)
     --sheet: int, # sheet number of frequency data
     --sorted: string,  # column name for sorting
     --skip: int, # skip number of rows

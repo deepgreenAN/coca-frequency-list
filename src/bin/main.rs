@@ -133,7 +133,7 @@ async fn query_command(
     words: Option<&[String]>,
     prefix: bool,
     suffix: bool,
-    pos: Option<&str>,
+    pos_list: Option<&[String]>,
     sorted_column: Option<&str>,
     skip: Option<usize>,
     limit: Option<usize>,
@@ -141,8 +141,8 @@ async fn query_command(
     all: bool,
     dist_path: Option<&Path>,
 ) -> Result<(), Error> {
-    if let Some(pos) = pos {
-        let pos_list = vec![
+    if let Some(pos_list) = pos_list {
+        let correct_pos_list = vec![
             "a".to_string(), // 冠詞
             "c".to_string(), // 接続詞
             "d".to_string(), // 限定詞
@@ -162,10 +162,15 @@ async fn query_command(
             "z".to_string(), // 略称
         ];
 
-        if !pos_list.contains(&pos.to_owned()) {
-            return Err(Error::ArgError(
-                CustomError::msg(format!("Invalid pos value. Choose pos in {pos_list:?}")).into(),
-            ));
+        for pos in pos_list.iter() {
+            if !correct_pos_list.contains(pos) {
+                return Err(Error::ArgError(
+                    CustomError::msg(format!(
+                        "Invalid pos value. Choose pos in {correct_pos_list:?}"
+                    ))
+                    .into(),
+                ));
+            }
         }
     }
 
@@ -202,7 +207,7 @@ The data source files cannot be found. Please download xlsx file from the offici
         df,
         sheet_type,
         words_and_match,
-        pos,
+        pos_list,
         sorted_column,
         skip,
         limit,
@@ -294,6 +299,12 @@ async fn main() -> Result<(), Error> {
                     .map(|column| column.to_owned())
                     .collect::<Vec<_>>()
             });
+            let pos_list = pos.map(|pos_list| {
+                pos_list
+                    .split(",")
+                    .map(|pos| pos.to_owned())
+                    .collect::<Vec<_>>()
+            });
 
             register_data(&ctx, sheet_type).await?;
 
@@ -303,7 +314,7 @@ async fn main() -> Result<(), Error> {
                 words.as_deref(),
                 prefix,
                 suffix,
-                pos.as_deref(),
+                pos_list.as_deref(),
                 sorted.as_deref(),
                 skip,
                 limit,

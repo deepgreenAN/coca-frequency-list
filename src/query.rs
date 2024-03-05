@@ -8,7 +8,7 @@ pub fn simple_query(
     mut df: DataFrame,
     sheet_type: SheetType,
     words_and_match: Option<(&[String], MatchType)>,
-    pos: Option<&str>,
+    pos_list: Option<&[String]>,
     sorted_column: Option<&str>,
     skip: Option<usize>,
     limit: Option<usize>,
@@ -76,15 +76,28 @@ pub fn simple_query(
     }
 
     // pos
-    if let Some(pos) = pos {
-        // まずPoSがあるか確認
+    if let Some(pos_list) = pos_list {
+        // まずdataframeにPoSカラムがあるか確認
         if !df.schema().has_column_with_unqualified_name("PoS") {
             Err(Error::ArgError(
                 CustomError::msg("Invalid sheet type for specifying part of speech(PoS).").into(),
             ))?;
         }
 
-        let pos_expr = logical_expr::col(r#""PoS""#).eq(logical_expr::lit(pos));
+        let pos_expr = if pos_list.len() == 1 {
+            // posが一つのみの場合
+            logical_expr::col(r#""PoS""#).eq(logical_expr::lit(&*pos_list.first().unwrap()))
+        } else {
+            // posが複数の場合
+            logical_expr::in_list(
+                logical_expr::col(r#""PoS""#),
+                pos_list
+                    .into_iter()
+                    .map(|pos| logical_expr::lit(pos))
+                    .collect(),
+                false,
+            )
+        };
 
         // where_exprの更新
         match where_expr {
